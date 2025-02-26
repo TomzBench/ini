@@ -1,0 +1,4 @@
+target
+crates/**/*/target
+crates/**/*/tests/.real_account_data.csv
+node_modules

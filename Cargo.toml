@@ -1,0 +1,16 @@
+[package]
+name = "ini"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { version = "1", features = ["derive"], optional = true }
+nom = "7"
+thiserror = "1"
+
+[dev-dependencies]
+indoc = "2"
+serde_test = { version = "1" }
+
+[features]
+serde = ["dep:serde"]

@@ -1,0 +1,18 @@
+{
+  "rust-analyzer": {
+    "diagnostics": {
+      "disabled": "unlinked-file",
+      "experimental": {
+        "enable": true
+      }
+    },
+    "cargo": {
+      "features": "all",
+      "buildScripts": { "enable": true }
+    },
+    "check": {
+      "features": "all"
+    },
+    "procMacro": { "enable": true }
+  }
+}

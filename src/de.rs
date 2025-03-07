@@ -1,8 +1,8 @@
 /// de
-use crate::{parse, Key};
+use crate::{parse, Key, Value};
 use nom::Finish;
 use serde::de::{self, IntoDeserializer, SeqAccess};
-use std::{error, fmt, num::ParseIntError};
+use std::{borrow::Cow, error, fmt, num::ParseIntError};
 
 #[derive(Debug)]
 pub enum Error {
@@ -14,6 +14,7 @@ pub enum Error {
     ExpectChar(parse::de::OwnedKey),
     ExpectNum(ParseIntError),
     ExpectIdent(String),
+    ExpectStr(String),
     Unsupported(&'static str),
 }
 
@@ -50,6 +51,7 @@ impl fmt::Display for Error {
             Error::ExpectBool(key) => write!(fmt, "expected bool, found {:?}", key),
             Error::ExpectChar(key) => write!(fmt, "expected char, found {:?}", key),
             Error::ExpectNum(key) => write!(fmt, "expected number, found {:?}", key),
+            Error::ExpectStr(key) => write!(fmt, "expected string, found {:?}", key),
             Error::ExpectIdent(key) => write!(fmt, "expected number, found {:?}", key),
             Error::Unsupported(s) => write!(fmt, "{s} is not unsupported"),
         }
@@ -82,6 +84,12 @@ impl<'de> Deserializer<'de> {
         let (input, key) = parse::key_like(self.input).finish()?;
         self.input = input;
         Ok(key)
+    }
+
+    fn parse_value(&mut self) -> Result<parse::Value<'de>, Error> {
+        let (input, value) = parse::value(self.input).finish()?;
+        self.input = input;
+        Ok(value)
     }
 
     fn parse_ident(&mut self) -> Result<parse::de::Ident<'de>, Error> {
@@ -243,10 +251,12 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut Deserializer<'de> {
     where
         V: de::Visitor<'de>,
     {
-        let value = self.parse_key_like()?;
+        let value = self.parse_value()?;
         match value {
-            Key::Str(v) => visitor.visit_borrowed_str(v),
-            Key::Num(v) => visitor.visit_str(v.to_string().as_str()),
+            Value::Str(Cow::Borrowed(v)) => visitor.visit_borrowed_str(v),
+            Value::Str(Cow::Owned(v)) => visitor.visit_string(v),
+            Value::Num(v) => visitor.visit_str(v.to_string().as_str()),
+            _ => Err(Error::ExpectStr(self.input.to_string())),
         }
     }
 

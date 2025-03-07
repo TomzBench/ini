@@ -53,8 +53,11 @@ fn should_deserialize() {
         e1: Enum,
         e2: Enum,
         e3: Enum,
+        m0: String,
+        m1: String,
     }
 
+    #[rustfmt::skip]
     let input = indoc! {r#"
         b0 = true
         b1 = false
@@ -81,6 +84,15 @@ fn should_deserialize() {
         e1 = thing_b
         e2 = thing_c
         e3 = 3
+
+        m0 = \
+            hello \
+            world
+
+        m1 = \
+            this is a paragraph\
+            \
+            next paragraph
 
         [nested_none]
         n0 = 42
@@ -127,4 +139,6 @@ fn should_deserialize() {
     assert_eq!(Enum::ThingB, test.e1);
     assert_eq!(Enum::ThingC, test.e2);
     assert_eq!(Enum::ThingD, test.e3);
+    assert_eq!("hello world", test.m0);
+    assert_eq!("this is a paragraph\nnext paragraph", test.m1);
 }

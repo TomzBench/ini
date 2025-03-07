@@ -3,10 +3,19 @@ use ini::{parse_str, Key, Value};
 
 #[test]
 fn should_parse() {
+    #[rustfmt::skip]
     let input = indoc! {r#"
         anon = 42
         boop = hi
         8 = great
+        multi = \
+            hello \
+            world
+        paragraph = \
+            this has a paragraph\
+            \
+            next paragraph
+
         [general]
         foo = bar
         num=42
@@ -49,10 +58,18 @@ fn should_parse() {
 
     // read the anonymous table
     let anon = table.get("_").unwrap();
-    assert_eq!(3, anon.len());
+    assert_eq!(5, anon.len());
     assert_eq!(Some(&Value::Num(42)), anon.get(&Key::Str("anon")));
-    assert_eq!(Some(&Value::Str("hi")), anon.get(&"boop".into()));
-    assert_eq!(Some(&Value::Str("great")), anon.get(&Key::Num(8)));
+    assert_eq!(Some(&Value::Str("hi".into())), anon.get(&"boop".into()));
+    assert_eq!(Some(&Value::Str("great".into())), anon.get(&Key::Num(8)));
+    assert_eq!(
+        Some(&Value::Str("hello world".into())),
+        anon.get(&Key::Str("multi"))
+    );
+    assert_eq!(
+        Some(&Value::Str("this has a paragraph\nnext paragraph".into())),
+        anon.get(&Key::Str("paragraph"))
+    );
 
     // read the empty table
     let empty = table.get("empty").unwrap();
@@ -62,13 +79,13 @@ fn should_parse() {
     for i in ["general", "bar junk", "another"] {
         let map = table.get(i).unwrap();
         assert_eq!(9, map.len());
-        assert_eq!(Some(&Value::Str("bar")), map.get(&"foo".into()));
+        assert_eq!(Some(&Value::Str("bar".into())), map.get(&"foo".into()));
         assert_eq!(Some(&Value::Num(42)), map.get(&"num".into()));
         assert_eq!(Some(&Value::Num(42)), map.get(&"bum".into()));
-        assert_eq!(Some(&Value::Str("world")), map.get(&"a".into()));
-        assert_eq!(Some(&Value::Str("world")), map.get(&"b".into()));
-        assert_eq!(Some(&Value::Str("world")), map.get(&"c".into()));
-        assert_eq!(Some(&Value::Str("tom foo")), map.get(&"d".into()));
+        assert_eq!(Some(&Value::Str("world".into())), map.get(&"a".into()));
+        assert_eq!(Some(&Value::Str("world".into())), map.get(&"b".into()));
+        assert_eq!(Some(&Value::Str("world".into())), map.get(&"c".into()));
+        assert_eq!(Some(&Value::Str("tom foo".into())), map.get(&"d".into()));
         assert_eq!(
             Some(&Value::Array(vec![
                 Value::Num(1),
@@ -79,9 +96,9 @@ fn should_parse() {
         );
         assert_eq!(
             Some(&Value::Array(vec![
-                Value::Str("one"),
-                Value::Str("two"),
-                Value::Str("three")
+                Value::Str("one".into()),
+                Value::Str("two".into()),
+                Value::Str("three".into())
             ])),
             map.get(&"f".into())
         );
